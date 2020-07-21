@@ -11,17 +11,22 @@ import (
 )
 
 func RunPotato() {
+	config := configuration.LoadConfiguration()
+	loadFunctions()
+
 	if len(os.Args) <= 1 {
-		fmt.Printf("Use '%s <command>'.\n\n", os.Args[0])
+		fmt.Printf("Use '%s <command>'.\n", os.Args[0])
+		fmt.Println("Commands:")
+		for name := range config.Commands {
+			fmt.Printf("\t%s\n", name)
+		}
 		os.Exit(1)
 	}
 
 	commandName := strings.Join(os.Args[1:], " ")
-	config := configuration.LoadConfiguration()
-	loadFunctions()
 
-	if call, ok := defaultFuncs[commandName]; ok {
-		call(config)
+	if fn, ok := defaultFuncs[commandName]; ok {
+		fn(config)
 		return
 	}
 

@@ -2,6 +2,7 @@ package parser
 
 import (
 	"log"
+	"reflect"
 
 	"github.com/manifoldco/promptui"
 	"github.com/snakeice/potato/internal/pkg/definitions"
@@ -32,12 +33,12 @@ func fillParams(command *definitions.Command) map[string]string {
 		} else {
 			prompt := promptui.Select{
 				Label: description,
-				Items: param.Values,
+				Items: reflect.ValueOf(param.Values).MapKeys(),
 			}
 			if _, response, err := prompt.Run(); err != nil {
 				log.Printf("Err: %v", err)
 			} else {
-				result[name] = response
+				result[name] = param.Values[response]
 			}
 		}
 

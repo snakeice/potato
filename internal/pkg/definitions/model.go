@@ -9,9 +9,9 @@ type PotatoConfig struct {
 	Editor     string             `yaml:"editor"`
 }
 type Parameters struct {
-	Default     string   `yaml:"default"`
-	Description string   `yaml:"description"`
-	Values      []string `yaml:"values"`
+	Default     string            `yaml:"default"`
+	Description string            `yaml:"description"`
+	Values      map[string]string `yaml:"values"`
 }
 
 type Command struct {

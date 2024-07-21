@@ -1,7 +1,6 @@
 package configuration
 
 import (
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -30,13 +29,13 @@ func LoadConfiguration() *definitions.PotatoConfig {
 	configPath := filepath.Join(filePath(), "potato.yaml")
 	c := &definitions.PotatoConfig{
 		AlwaysSudo: false,
-		Commands:   make(map[string]definitions.Command),
-		Shell:      "",
+		Commands:   map[string]definitions.Command{"hello": {Description: "Hello world", Template: []string{"echo Hello world"}}},
+		Shell:      []string{"/usr/bin/sh", "-c"},
 		User:       "",
 		Path:       configPath,
 	}
 
-	buff, err := ioutil.ReadFile(configPath)
+	buff, err := os.ReadFile(configPath)
 	if err != nil {
 		log.Printf("WARN: Fail to load cfg %s", err)
 		saveConfiguration(c, filePath())
@@ -53,7 +52,7 @@ func LoadConfiguration() *definitions.PotatoConfig {
 }
 
 func saveConfiguration(c *definitions.PotatoConfig, path string) {
-	jsonString, err := yaml.Marshal(c)
+	str, err := yaml.Marshal(c)
 	if err != nil {
 		log.Fatal("Error on parse config file", err.Error())
 	}
@@ -67,13 +66,12 @@ func saveConfiguration(c *definitions.PotatoConfig, path string) {
 	f, err := os.Create(configPath)
 	if err != nil {
 		log.Fatal("Failed on create file ", configPath, err.Error())
-		return
 	}
 
 	defer f.Close()
 
-	_, err = f.Write(jsonString)
+	_, err = f.Write(str)
 	if err != nil {
-		log.Fatal("Failed on write cache file", err.Error())
+		log.Printf("Failed on write cache file: %s", err.Error())
 	}
 }

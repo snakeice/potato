@@ -12,30 +12,28 @@ import (
 
 func RunPotato() {
 	config := configuration.LoadConfiguration()
-	loadFunctions()
-
+	loadFunctions(config)
 	if len(os.Args) <= 1 {
-		fmt.Printf("Use '%s <command>'.\n", os.Args[0])
-		fmt.Println("Commands:")
-		for name := range config.Commands {
-			fmt.Printf("\t%s\n", name)
-		}
+		fmt.Println("You need to pass a command")
+
+		config.Commands["help"].Fn(config)
 		os.Exit(1)
 	}
 
 	commandName := strings.Join(os.Args[1:], " ")
 
-	if fn, ok := defaultFuncs[commandName]; ok {
-		fn(config)
-		return
-	}
-
 	if command, ok := config.Commands[commandName]; !ok {
 		fmt.Printf("Command %s not found\n", commandName)
 		os.Exit(1)
 	} else {
-		parsedCommand := parser.MakeCommand(&command)
-		runner.RunCommand(config, parsedCommand)
+		if command.Fn != nil {
+			command.Fn(config)
+			os.Exit(0)
+		} else {
+			parsedCommand := parser.MakeCommand(&command)
+			cmd := strings.Split(strings.Join(parsedCommand, " "), " ")
+			runner.RunCommand(config, cmd)
+		}
 	}
 
 }

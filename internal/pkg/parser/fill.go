@@ -1,15 +1,15 @@
 package parser
 
 import (
-	"log"
-	"reflect"
-
-	"github.com/manifoldco/promptui"
+	"github.com/charmbracelet/huh"
 	"github.com/snakeice/potato/internal/pkg/definitions"
 )
 
 func fillParams(command *definitions.Command) map[string]string {
 	result := make(map[string]string)
+
+	fields := []huh.Field{}
+
 	for name, param := range command.Parameters {
 		var description string
 		if len(param.Description) == 0 {
@@ -19,29 +19,33 @@ func fillParams(command *definitions.Command) map[string]string {
 		}
 
 		if len(param.Values) == 0 {
-			prompt := promptui.Prompt{
-				Label:   description,
-				Default: param.Default,
-			}
-
-			if response, err := prompt.Run(); err != nil {
-				log.Printf("Err: %v", err)
-			} else {
-				result[name] = response
-			}
+			fields = append(fields, huh.NewInput().
+				Key(name).
+				Title(description).
+				Suggestions([]string{param.Default}))
 
 		} else {
-			prompt := promptui.Select{
-				Label: description,
-				Items: reflect.ValueOf(param.Values).MapKeys(),
+			var options []huh.Option[string]
+			for key, value := range param.Values {
+				options = append(options, huh.NewOption(key, value))
 			}
-			if _, response, err := prompt.Run(); err != nil {
-				log.Printf("Err: %v", err)
-			} else {
-				result[name] = param.Values[response]
-			}
-		}
 
+			fields = append(fields, huh.NewSelect[string]().
+				Key(name).
+				Title(description).
+				Options(options...))
+		}
+	}
+
+	form := huh.NewForm(huh.NewGroup(fields...))
+
+	err := form.Run()
+	if err != nil {
+		return nil
+	}
+
+	for name := range command.Parameters {
+		result[name] = form.GetString(name)
 	}
 
 	return result

@@ -8,6 +8,10 @@ import (
 func fillParams(command *definitions.Command) map[string]string {
 	result := make(map[string]string)
 
+	if len(command.Parameters) == 0 {
+		return result
+	}
+
 	fields := []huh.Field{}
 
 	for name, param := range command.Parameters {
